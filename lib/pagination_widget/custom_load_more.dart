@@ -4,10 +4,12 @@ class CustomLoadMore extends StatefulWidget {
   const CustomLoadMore({super.key,this.padding,this.allowPullToRefresh=false, required this.itemBuilder, this.onLoadMore, this.separatorWidget, required this.itemCount});
 
   final Widget? Function(BuildContext, int) itemBuilder;
+  /// function that trigger when you reach the end of list , you need to call api inside and give bool result in retun to manage the page count 
   final Future<bool> Function(int page)? onLoadMore;
   final Widget? separatorWidget;
   final int itemCount;
   final EdgeInsetsGeometry? padding;
+  ///allow you to use pull to refresh, you will get callback in onLoadMore with zero value
   final bool allowPullToRefresh;
   @override
   State<CustomLoadMore> createState() => _CustomLoadMoreState();
@@ -61,7 +63,10 @@ class _CustomLoadMoreState extends State<CustomLoadMore> {
     );
     if(widget.allowPullToRefresh){
       return RefreshIndicator(
-        onRefresh: () async =>await widget.onLoadMore?.call(0),
+        onRefresh: () async {
+          page=0;
+          await widget.onLoadMore?.call(page),
+          }
         child: child,
       );
     }else{
