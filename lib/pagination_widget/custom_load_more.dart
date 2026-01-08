@@ -66,7 +66,7 @@ class _CustomLoadMoreState extends State<CustomLoadMore> {
         onRefresh: () async {
           page=0;
           await widget.onLoadMore?.call(page);
-          }
+          },
         child: child,
       );
     }else{
