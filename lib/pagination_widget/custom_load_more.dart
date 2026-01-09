@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CustomLoadMore extends StatefulWidget {
-  const CustomLoadMore({super.key,this.padding,this.allowPullToRefresh=false, required this.itemBuilder, this.onLoadMore, this.separatorWidget, required this.itemCount});
+  const CustomLoadMore({super.key,this.padding,this.shouldLoadMore=true,this.allowPullToRefresh=false, required this.itemBuilder, this.onLoadMore, this.separatorWidget, required this.itemCount});
 
   final Widget? Function(BuildContext, int) itemBuilder;
   /// function that trigger when you reach the end of list , you need to call api inside and give bool result in retun to manage the page count 
@@ -9,6 +9,9 @@ class CustomLoadMore extends StatefulWidget {
   final Widget? separatorWidget;
   final int itemCount;
   final EdgeInsetsGeometry? padding;
+    ///stop pull down (load more)
+  final bool shouldLoadMore;
+
   ///allow you to use pull to refresh, you will get callback in onLoadMore with zero value
   final bool allowPullToRefresh;
   @override
@@ -31,6 +34,7 @@ class _CustomLoadMoreState extends State<CustomLoadMore> {
     super.initState();
   }
   void loadMore()async{
+    if(!widget.shouldLoadMore&&page!=0) return;
     page++;
     setState(() {
       isLoadingMore = true;
