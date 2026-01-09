@@ -22,6 +22,7 @@ Expanded(
                   padding: EdgeInsets.symmetric(horizontal: 10,vertical: 5),
                   itemCount: value.list?.length??0,
                   allowPullToRefresh: true, // if you want pull to refresh
+                  shouldLoadMore: value.maxCount!=value.list?.length, // stop to getting more data if it was empty you can also contoll this conditoin when the response list is empty.
                   onLoadMore: (page) async{
                     /// api call code that retuen bool as sucess.
                     return ciHomeProvider.searchPXTicket(context: context,showValidation: false,showLoader: page==0,page: page);
