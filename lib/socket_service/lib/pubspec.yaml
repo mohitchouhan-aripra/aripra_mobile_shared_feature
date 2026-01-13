@@ -1,0 +1,12 @@
+name: socket_service
+description: Reusable Flutter socket service with multi-listener support
+version: 1.0.0
+
+environment:
+  sdk: ">=2.18.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  socket_io_client: ">=2.0.3 <4.0.0"
