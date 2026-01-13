@@ -11,11 +11,11 @@ Add the package to your app's `pubspec.yaml`:
 ```yaml
 
 dependencies:
-  socket_service:
+   socket_service:
     git:
       url: https://github.com/mohitchouhan-aripra/aripra_mobile_shared_feature.git
-      path: socket_service   # path inside the repo where your socket code is
-
+      ref: socket_connection_feature
+      path: lib/socket_service
 
 // 1️⃣ Define socket events that you want to listen to
 final socketEvents = <String, EventCallback>{
