@@ -6,10 +6,11 @@ class SocketService {
   final String baseUrl;
   final Map<String, dynamic> Function()? header;
   final Map<String, dynamic> Function()? query;
-  final Map<String, EventCallback> events;
+
+  final Map<String, EventCallback> _events = {};
 
   IO.Socket? _socket;
-  late SocketEventsHandler _eventsHandler;
+  SocketEventsHandler? _eventsHandler;
 
   bool _connecting = false;
 
@@ -18,8 +19,11 @@ class SocketService {
     this.header,
     this.query,
     Map<String, EventCallback>? events,
-  }) : events = events ?? {};
-
+  }) {
+    if (events != null) {
+      _events.addAll(events);
+    }
+  }
 
   Future<String> connect() async {
     if (_socket?.connected == true) return 'Already connected';
@@ -31,7 +35,6 @@ class SocketService {
 
     final authData = header?.call() ?? {};
     final queryData = query?.call() ?? {};
-
 
     _socket = IO.io(
       baseUrl,
@@ -46,12 +49,10 @@ class SocketService {
           .build(),
     );
 
-    if (events.isNotEmpty) {
-      _eventsHandler = SocketEventsHandler(
-        events: events,
-        socket: _socket!,
-      );
-    }
+    _eventsHandler = SocketEventsHandler(
+      socket: _socket!,
+      events: _events,
+    );
 
     _socket!
       ..clearListeners()
@@ -78,6 +79,7 @@ class SocketService {
     if (_socket == null) return;
 
     _eventsHandler?.unregister();
+    _eventsHandler = null;
 
     _socket!
       ..clearListeners()
@@ -86,7 +88,16 @@ class SocketService {
 
     _socket = null;
     _connecting = false;
+
     print('[Socket] Disconnected & destroyed');
+  }
+
+  void addEvent(String event, EventCallback callback) {
+    _events[event] = callback;
+    if (_socket?.connected == true) {
+      _socket!.on(event, callback);
+      print('[Socket] Listening → $event');
+    }
   }
 
   void sendEvent(String event, dynamic data) {
@@ -97,10 +108,4 @@ class SocketService {
       print('[Socket] Cannot emit, socket not connected');
     }
   }
-
-  void addEvent(String event, EventCallback callback) {
-    _eventsHandler.addEvent(event, callback);
-    print('[Socket] Added new callback for event → $event');
-  }
-
 }

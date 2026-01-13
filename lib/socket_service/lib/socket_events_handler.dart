@@ -3,25 +3,22 @@ import 'socket_types.dart';
 
 class SocketEventsHandler {
   final IO.Socket socket;
-
-  final Map<String, List<EventCallback>> _events = {};
+  final Map<String, EventCallback> events;
 
   bool _registered = false;
 
-  SocketEventsHandler({required Map<String, EventCallback> events, required this.socket}) {
-    events.forEach((key, callback) {
-      addEvent(key, callback);
-    });
-  }
+  SocketEventsHandler({
+    required this.socket,
+    required this.events,
+  });
 
   void register() {
     if (_registered) return;
 
-    _events.forEach((event, callbacks) {
+    events.forEach((event, callback) {
       socket.off(event);
-      for (var callback in callbacks) {
-        socket.on(event, callback);
-      }
+      socket.on(event, callback);
+      print('[SocketEventsHandler] Registered → $event');
     });
 
     _registered = true;
@@ -30,24 +27,11 @@ class SocketEventsHandler {
   void unregister() {
     if (!_registered) return;
 
-    _events.keys.forEach(socket.off);
+    for (final event in events.keys) {
+      socket.off(event);
+    }
+
     _registered = false;
-  }
-
-  void addEvent(String event, EventCallback callback) {
-    if (!_events.containsKey(event)) {
-      _events[event] = [];
-    }
-
-    if (!_events[event]!.contains(callback)) {
-      _events[event]!.add(callback);
-
-      if (socket.connected) {
-        socket.on(event, callback);
-        print('[SocketEventsHandler] Listening → $event');
-      }
-    } else {
-      print('[SocketEventsHandler] Callback already exists for → $event');
-    }
+    print('[SocketEventsHandler] Unregistered all');
   }
 }
