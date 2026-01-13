@@ -4,7 +4,8 @@ import 'socket_types.dart';
 
 class SocketService {
   final String baseUrl;
-  final Map<String, dynamic> Function() header;
+  final Map<String, dynamic> Function()? header;
+  final Map<String, dynamic> Function()? query;
   final Map<String, EventCallback> events;
 
   IO.Socket? _socket;
@@ -14,26 +15,30 @@ class SocketService {
 
   SocketService({
     required this.baseUrl,
-    required this.header,
-    required this.events,
-  });
+    this.header,
+    this.query,
+    Map<String, EventCallback>? events,
+  }) : events = events ?? {};
+
 
   Future<String> connect() async {
     if (_socket?.connected == true) return 'Already connected';
     if (_connecting) return 'Connection already in progress';
 
-    final auth = header();
-    if (auth.isEmpty) return 'Header data is empty';
-
     _connecting = true;
 
     _socket?.dispose();
+
+    final authData = header?.call() ?? {};
+    final queryData = query?.call() ?? {};
+
 
     _socket = IO.io(
       baseUrl,
       IO.OptionBuilder()
           .setTransports(['websocket'])
-          .setAuth(auth)
+          .setAuth(authData)
+          .setQuery(queryData)
           .disableAutoConnect()
           .enableReconnection()
           .setReconnectionAttempts(5)
@@ -41,18 +46,23 @@ class SocketService {
           .build(),
     );
 
-    _eventsHandler = SocketEventsHandler(events: events, socket: _socket!);
+    if (events.isNotEmpty) {
+      _eventsHandler = SocketEventsHandler(
+        events: events,
+        socket: _socket!,
+      );
+    }
 
     _socket!
       ..clearListeners()
       ..onConnect((_) {
         _connecting = false;
-        _eventsHandler.register();
+        _eventsHandler?.register();
         print('[Socket] Connected');
       })
       ..onDisconnect((reason) {
         _connecting = false;
-        _eventsHandler.unregister();
+        _eventsHandler?.unregister();
         print('[Socket] Disconnected → $reason');
       })
       ..onError((e) {
@@ -67,7 +77,7 @@ class SocketService {
   void disconnect() {
     if (_socket == null) return;
 
-    _eventsHandler.unregister();
+    _eventsHandler?.unregister();
 
     _socket!
       ..clearListeners()
